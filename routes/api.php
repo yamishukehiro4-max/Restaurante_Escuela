@@ -24,13 +24,14 @@ use App\Http\Controllers\Api\UtensilController;
 use App\Http\Controllers\Api\ExternalEventController;
 use App\Http\Controllers\Api\GasProrationController;
 
+// Fallback JSON para peticiones API sin token (NO se llama "login" para no chocar con la web)
 Route::get('/login', function () {
     return response()->json([
-        'error'   => 'No autenticado.',
-        'message' => 'Enviá: Authorization: Bearer <token>',
+        'error'          => 'No autenticado.',
+        'message'        => 'Enviá: Authorization: Bearer <token>',
         'login_endpoint' => '/api/v1/login',
     ], 401);
-})->name('login');
+})->name('api.login');
 
 Route::prefix('v1')->group(function () {
 
@@ -41,7 +42,7 @@ Route::prefix('v1')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me']);
 
-        // ---------- ACCESO GENERAL (todos los roles logueados) ----------
+        // ---------- ACCESO GENERAL ----------
         Route::apiResource('dishes', DishController::class)->only(['index', 'show']);
         Route::apiResource('dish-categories', DishCategoryController::class)->only(['index', 'show']);
         Route::apiResource('raw-materials', RawMaterialController::class)->only(['index', 'show']);
@@ -49,14 +50,14 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('suppliers', SupplierController::class)->only(['index', 'show']);
         Route::apiResource('recipes', RecipeController::class)->only(['index', 'show']);
 
-        // ---------- VENTAS (Alumno Caja, Administrador) ----------
+        // ---------- VENTAS ----------
         Route::middleware('role:Administrador,Alumno Caja')->group(function () {
             Route::apiResource('sales', SaleController::class);
             Route::apiResource('cash-register-closings', CashRegisterClosingController::class);
             Route::apiResource('orders', OrderController::class);
         });
 
-        // ---------- PRODUCCIÓN (Chef, Administrador) ----------
+        // ---------- PRODUCCIÓN ----------
         Route::middleware('role:Administrador,Chef')->group(function () {
             Route::apiResource('dishes', DishController::class)->except(['index', 'show']);
             Route::apiResource('dish-categories', DishCategoryController::class)->except(['index', 'show']);
@@ -69,7 +70,7 @@ Route::prefix('v1')->group(function () {
             Route::post('external-events/{externalEvent}/approve', [ExternalEventController::class, 'approve']);
         });
 
-        // ---------- COMPRAS (Compras, Administrador) ----------
+        // ---------- COMPRAS ----------
         Route::middleware('role:Administrador,Compras')->group(function () {
             Route::apiResource('suppliers', SupplierController::class)->except(['index', 'show']);
             Route::apiResource('purchase-orders', PurchaseOrderController::class);
