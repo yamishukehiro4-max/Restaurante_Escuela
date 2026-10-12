@@ -7,34 +7,30 @@ use App\Http\Controllers\DishWebController;
 use App\Http\Controllers\UserWebController;
 use App\Http\Controllers\SupplierWebController;
 use App\Http\Controllers\RawMaterialWebController;
+use App\Http\Controllers\RecipeWebController;
+use App\Http\Controllers\SaleWebController;
+use App\Http\Controllers\MovementWebController;
+use App\Http\Controllers\ReportController;
 
-// ============================================================
-// PÚBLICO — SOLO el login
-// ============================================================
+// PÚBLICO
 Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthWebController::class, 'login']);
 Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
 
-// ============================================================
-// PROTEGIDO — TODO lo demás requiere login
-// ============================================================
+// PROTEGIDO
 Route::middleware('auth')->group(function () {
 
-    // Home
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/docs', [HomeController::class, 'docs'])->name('docs');
     Route::get('/playground', [HomeController::class, 'playground'])->name('playground');
-    Route::get('/api/chart-data', [HomeController::class, 'chartData']);
     Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
+    Route::get('/api/chart-data', [HomeController::class, 'chartData']);
 
-    // Página QR
     Route::get('/qr', function () {
-        $ip = request()->getHost();
-        $url = 'http://' . $ip . ':' . request()->getPort();
+        $url = 'http://' . request()->getHost() . ':' . request()->getPort();
         return view('qr', compact('url'));
     })->name('qr');
 
-    // Admin (CRUDs)
     Route::prefix('admin')->group(function () {
         // Platillos
         Route::get('dishes', [DishWebController::class, 'index']);
@@ -61,5 +57,24 @@ Route::middleware('auth')->group(function () {
         Route::post('raw-materials', [RawMaterialWebController::class, 'store']);
         Route::put('raw-materials/{rawMaterial}', [RawMaterialWebController::class, 'update']);
         Route::delete('raw-materials/{rawMaterial}', [RawMaterialWebController::class, 'destroy']);
+
+        // Recetas
+        Route::get('recipes', [RecipeWebController::class, 'index']);
+        Route::post('recipes', [RecipeWebController::class, 'store']);
+        Route::delete('recipes/{recipe}', [RecipeWebController::class, 'destroy']);
+
+        // Ventas
+        Route::get('sales', [SaleWebController::class, 'index']);
+        Route::post('sales', [SaleWebController::class, 'store']);
+        Route::delete('sales/{sale}', [SaleWebController::class, 'destroy']);
+
+        // Kardex
+        Route::get('movements', [MovementWebController::class, 'index']);
+        Route::post('movements', [MovementWebController::class, 'store']);
+        Route::delete('movements/{movement}', [MovementWebController::class, 'destroy']);
+
+        // Reportes PDF
+        Route::get('reports/sales-pdf', [ReportController::class, 'salesPdf']);
+        Route::get('reports/stock-pdf', [ReportController::class, 'stockPdf']);
     });
 });
